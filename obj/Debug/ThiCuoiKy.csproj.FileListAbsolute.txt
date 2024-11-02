@@ -1,0 +1,13 @@
+C:\Users\ADMIN\source\repos\ThiCuoiKy\bin\Debug\ThiCuoiKy.exe.config
+C:\Users\ADMIN\source\repos\ThiCuoiKy\bin\Debug\ThiCuoiKy.exe
+C:\Users\ADMIN\source\repos\ThiCuoiKy\bin\Debug\ThiCuoiKy.pdb
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.csproj.AssemblyReference.cache
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.AJob.resources
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.DailyPlan.resources
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.Form1.resources
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.Properties.Resources.resources
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.csproj.GenerateResource.cache
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.csproj.CoreCompileInputs.cache
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.exe
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.pdb
+C:\Users\ADMIN\source\repos\ThiCuoiKy\obj\Debug\ThiCuoiKy.NotifyForm.resources
