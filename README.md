@@ -5,7 +5,7 @@
 A project developed with **Object-Oriented Programming (OOP) principles in C#**.
 
 <div align="center">
-    <img src="" alt="Schedule Management" width="400" height="400">
+    <img src="https://drive.google.com/file/d/123qQUseYqoLy4o8Bv5do3lP5StmaZTF-/view?usp=sharing" alt="Schedule Management" width="400" height="400">
 </div>
 
 </div>
