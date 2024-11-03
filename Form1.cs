@@ -56,6 +56,8 @@ namespace ThiCuoiKy
 
         private string filePath = "data.xml";
 
+        private NotifyManager notifyManager;
+        
         public Form1()
         {
             InitializeComponent();
@@ -65,7 +67,12 @@ namespace ThiCuoiKy
             Notify = new NotifyIcon();
 
             appTime = 0;
+
+            // Khởi tạo NotifyManager trước khi sử dụng
+            InitializeNotification();
+            
             LoadMtrix();
+            
             try
             {
                 Job = DeserializeFromXML(filePath) as PlanData;
@@ -104,8 +111,6 @@ namespace ThiCuoiKy
                 throw new NotImplementedException();
             }
         }
-
-
 
         private void Form1_FormClosing_1(object sender, FormClosingEventArgs e)
         {
@@ -291,50 +296,82 @@ namespace ThiCuoiKy
 
             }
         }
+
+        private void InitializeNotification()
+        {
+            notifyManager = new NotifyManager();
+            notifyManager.IsEnabled = ckbNotify.Checked;
+        }
+        
         private void tmNotify_Tick(object sender, EventArgs e)
         {
-            // Nếu checkbox thông báo không được chọn thì không chạy thông báo
-            if (!ckbNotify.Checked)
+            // Thêm kiểm tra null
+            if (notifyManager == null)
             {
+                InitializeNotification();
                 return;
             }
-
-            // Tăng biến đếm thời gian
+            
+            if (!notifyManager.IsEnabled)
+                return;
+            
             AppTime++;
-
-            // Nếu chưa đến thời gian thông báo, thoát ra khỏi hàm
-            if (AppTime < screen.NotifyTime)
-            {
+            
+            if (AppTime < Cons.notifyTime)
                 return;
-            }
-
+            
             DateTime currentDate = DateTime.Now;
+            List<PlanItem> todayJobs = GetTodayJobs(currentDate);
+            
+            if (notifyManager.ShouldNotify(currentDate, Job.Job))
+            {
+                string message = $"Bạn có {todayJobs.Count} việc cần làm trong ngày hôm nay";
+                notifyManager.ShowNotification(message);
+            }
+            
+            AppTime = 0;
+        }
 
-            // Kiểm tra các công việc trong ngày hiện tại
+        private List<PlanItem> GetTodayJobs(DateTime currentDate)
+        {
             List<PlanItem> todayJobs = new List<PlanItem>();
             foreach (PlanItem job in Job.Job)
             {
-                if (job.Date.Year == currentDate.Year && job.Date.Month == currentDate.Month && job.Date.Day == currentDate.Day)
+                if (job.Date.Year == currentDate.Year &&
+                    job.Date.Month == currentDate.Month &&
+                    job.Date.Day == currentDate.Day)
                 {
-                    if (job.Status == PlanItem.liststatus[(int)StatusEnum.Coming] || job.Status == PlanItem.liststatus[(int)StatusEnum.Doing])
+                    if (job.Status == PlanItem.ListStatus[(int)EPlanItem.COMING] ||
+                        job.Status == PlanItem.ListStatus[(int)EPlanItem.DOING])
                     {
                         todayJobs.Add(job);
                     }
                 }
             }
-
-            // Nếu có công việc, hiển thị Form thông báo
-            if (todayJobs.Count > 0)
-            {
-                string message = $"Bạn có {todayJobs.Count} việc cần làm trong ngày hôm nay";
-                NotifyForm notifyForm = new NotifyForm(message);
-                notifyForm.ShowDialog();  // Hiển thị Form thông báo
-            }
-
-            // Reset lại biến đếm thời gian sau khi thông báo
-            AppTime = 0;
+            return todayJobs;
         }
 
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            // Thêm kiểm tra null
+            if (notifyManager == null)
+            {
+                InitializeNotification();
+            }
+            notifyManager.IsEnabled = ckbNotify.Checked;
+            nmNotify.Enabled = ckbNotify.Checked;
+        }
+
+        private void nmNotify_ValueChanged(object sender, EventArgs e)
+        {
+            // Thêm kiểm tra null
+            if (notifyManager == null)
+            {
+                InitializeNotification();
+            }
+            Cons.notifyTime = (int)nmNotify.Value;
+        }
+        
         private bool InDay()
         {
             int current = DateTime.Now.Hour;
@@ -370,10 +407,7 @@ namespace ThiCuoiKy
         {
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            nmNotify.Enabled = ckbNotify.Checked;
-        }
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -432,12 +466,5 @@ namespace ThiCuoiKy
         {
 
         }
-
-        private void nmNotify_ValueChanged(object sender, EventArgs e)
-        {
-            screen.NotifyTime = (int)nmNotify.Value;
-        }
     }
-
-    
 }
