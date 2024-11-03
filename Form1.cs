@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -56,20 +56,12 @@ namespace ThiCuoiKy
 
         private string filePath = "data.xml";
 
-        public Form1(bool isscreen = false)
+        public Form1()
         {
             InitializeComponent();
 
-            if(isscreen)
-            {
-                screen = new DarkMode();
-                this.BackColor = Color.BlanchedAlmond;
-            }
-            else
-            {
-                screen = new LightMode();
-                this.BackColor = Color.White;
-            }
+            ModeScreen();
+
             Notify = new NotifyIcon();
 
             appTime = 0;
@@ -341,6 +333,26 @@ namespace ThiCuoiKy
 
             // Reset lại biến đếm thời gian sau khi thông báo
             AppTime = 0;
+        }
+
+        private bool InDay()
+        {
+            int current = DateTime.Now.Hour;
+            return current >= 6 && current < 18;
+        }
+
+        private void ModeScreen()
+        {
+            if(InDay())
+            {
+                screen = new LightMode();
+                this.BackColor = Color.White;
+            }
+            else
+            {
+                screen = new DarkMode();
+                this.BackColor= Color.BlanchedAlmond;
+            }
         }
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
         {
