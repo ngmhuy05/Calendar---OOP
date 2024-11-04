@@ -16,7 +16,7 @@ namespace ThiCuoiKy
     [Serializable]
     public partial class Form1 : Form
     {
-        private Cons screen;
+        private Cons cons;
 
         private NotifyIcon notify;
         private List<List<Button>> matrix;
@@ -53,9 +53,11 @@ namespace ThiCuoiKy
         public DateTime Date { get => date; set => date = value; }
         public PlanData Job { get => job; set => job = value; }
         public Jobstatic Jobstatic { get => jobstatic; set => jobstatic = value; }
+        public Cons Cons { get => cons; set => cons = value; }
 
         private string filePath = "data.xml";
 
+        private NotifyManager notifyManager;
         public Form1()
         {
             InitializeComponent();
@@ -65,7 +67,11 @@ namespace ThiCuoiKy
             Notify = new NotifyIcon();
 
             appTime = 0;
+
+            InitializeNotification();
+
             LoadMtrix();
+
             try
             {
                 Job = DeserializeFromXML(filePath) as PlanData;
@@ -160,17 +166,17 @@ namespace ThiCuoiKy
         {
 
             Matrix = new List<List<Button>>();
-            Button preBtn = new Button() { Width = 40, Height = 40, Location = new Point(-screen.Margin, 0) };
-            for (int i = 0; i < screen.Row; i++)
+            Button preBtn = new Button() { Width = 40, Height = 40, Location = new Point(-Cons.Margin, 0) };
+            for (int i = 0; i < Cons.Row; i++)
             {
 
                 Matrix.Add(new List<Button>());
 
-                for (int j = 0; j < screen.Column; j++)
+                for (int j = 0; j < Cons.Column; j++)
                 {
 
-                    Button button = new Button() { Width = screen.SizeBtnWidth, Height = screen.SizeBtnHeight };
-                    button.Location = new Point(preBtn.Location.X + preBtn.Width + screen.Margin, preBtn.Location.Y);
+                    Button button = new Button() { Width = Cons.SizeBtnWidth, Height = Cons.SizeBtnHeight };
+                    button.Location = new Point(preBtn.Location.X + preBtn.Width + Cons.Margin, preBtn.Location.Y);
 
                     pnlMatrix.Controls.Add(button);
                     button.Click += btn_Click;
@@ -183,7 +189,7 @@ namespace ThiCuoiKy
                 {
                     Width = 40,
                     Height = 40,
-                    Location = new Point(-screen.Margin, preBtn.Location.Y + screen.SizeBtnHeight)
+                    Location = new Point(-Cons.Margin, preBtn.Location.Y + Cons.SizeBtnHeight)
                 };
             }
             DefualtDate();
@@ -231,21 +237,6 @@ namespace ThiCuoiKy
         {
             return a.Year == b.Year && a.Month == b.Month && a.Day == b.Day;
         }
-
-        List<PlanItem> JobByDay(DateTime date)
-        {
-            List<PlanItem> result = new List<PlanItem>();
-
-            foreach (PlanItem item in Job.Job)
-            {
-                if (item.Date.Year == date.Year && item.Date.Month == date.Month && item.Date.Day == date.Day)
-                {
-                    result.Add(item);
-                }
-            }
-
-            return result;
-        }
         void AddNunmberMatrixByDate(DateTime date)
         {
             ClearMatrix();
@@ -291,51 +282,63 @@ namespace ThiCuoiKy
 
             }
         }
+        private void InitializeNotification()
+        {
+            notifyManager = new NotifyManager();
+            notifyManager.IsEnabled = ckbNotify.Checked;
+        }
         private void tmNotify_Tick(object sender, EventArgs e)
         {
             // Nếu checkbox thông báo không được chọn thì không chạy thông báo
-            if (!ckbNotify.Checked)
+            if (notifyManager == null)
             {
+                InitializeNotification();
                 return;
             }
-
             // Tăng biến đếm thời gian
+            if (!notifyManager.IsEnabled)
+                return;
+
             AppTime++;
 
             // Nếu chưa đến thời gian thông báo, thoát ra khỏi hàm
-            if (AppTime < screen.NotifyTime)
-            {
+            if (AppTime < Cons.NotifyTime)
+            {     
                 return;
             }
 
             DateTime currentDate = DateTime.Now;
 
             // Kiểm tra các công việc trong ngày hiện tại
+            List<PlanItem> todayJobs = GetTodayJobs(currentDate);
+
+            if (notifyManager.ShouldNotify(currentDate, Job.Job))
+            {
+                string message = $"Bạn có {todayJobs.Count} việc cần làm trong ngày hôm nay";
+                notifyManager.ShowNotification(message);
+            }
+
+            AppTime = 0;
+        }
+        private List<PlanItem> GetTodayJobs(DateTime currentDate)
+        {
             List<PlanItem> todayJobs = new List<PlanItem>();
             foreach (PlanItem job in Job.Job)
             {
-                if (job.Date.Year == currentDate.Year && job.Date.Month == currentDate.Month && job.Date.Day == currentDate.Day)
+                if (job.Date.Year == currentDate.Year &&
+                   job.Date.Month == currentDate.Month &&
+                   job.Date.Day == currentDate.Day)
                 {
-                    if (job.Status == PlanItem.liststatus[(int)StatusEnum.Coming] || job.Status == PlanItem.liststatus[(int)StatusEnum.Doing])
+                    if (job.Status == PlanItem.liststatus[(int)StatusEnum.Coming] ||
+                       job.Status == PlanItem.liststatus[(int)StatusEnum.Doing])
                     {
                         todayJobs.Add(job);
-                    }
-                }
+                    }    
+                }    
             }
-
-            // Nếu có công việc, hiển thị Form thông báo
-            if (todayJobs.Count > 0)
-            {
-                string message = $"Bạn có {todayJobs.Count} việc cần làm trong ngày hôm nay";
-                NotifyForm notifyForm = new NotifyForm(message);
-                notifyForm.ShowDialog();  // Hiển thị Form thông báo
-            }
-
-            // Reset lại biến đếm thời gian sau khi thông báo
-            AppTime = 0;
+            return todayJobs;
         }
-
-        private bool InDay()
+                private bool InDay()
         {
             int current = DateTime.Now.Hour;
             return current >= 6 && current < 18;
@@ -345,12 +348,12 @@ namespace ThiCuoiKy
         {
             if(InDay())
             {
-                screen = new LightMode();
+                Cons = new LightMode();
                 this.BackColor = Color.White;
             }
             else
             {
-                screen = new DarkMode();
+                Cons = new DarkMode();
                 this.BackColor= Color.BlanchedAlmond;
             }
         }
@@ -358,35 +361,15 @@ namespace ThiCuoiKy
         {
             AddNunmberMatrixByDate((sender as DateTimePicker).Value);
         }
-        private void panel5_Paint(object sender, PaintEventArgs e)
-        {
-        }
-
-        private void btnMonday_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void panel6_Paint(object sender, PaintEventArgs e)
-        {
-        }
-
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
+            if (notifyManager == null)
+            {
+                InitializeNotification();
+            }
+            notifyManager.IsEnabled = ckbNotify.Checked;
             nmNotify.Enabled = ckbNotify.Checked;
         }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-        }
-
-        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-        }
-
         private void toolStripTextBox1_Click(object sender, EventArgs e)
         {
             MessageBox.Show(Jobstatic.DailyJob(date));
@@ -394,18 +377,7 @@ namespace ThiCuoiKy
 
         private void toolStripLabel1_Click(object sender, EventArgs e)
         {
-
             MessageBox.Show(Jobstatic.DailyJob(date));
-        }
-
-        private void btnTuesday_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void btnToday_Click(object sender, EventArgs e)
@@ -422,6 +394,50 @@ namespace ThiCuoiKy
         {
             dtpkDate.Value = dtpkDate.Value.AddMonths(-1);
         }
+        private void nmNotify_ValueChanged(object sender, EventArgs e)
+        {
+            if (notifyManager == null)
+            {
+                InitializeNotification();
+            }
+
+            // Reset lại biến đếm thời gian sau khi thông báo
+            Cons.NotifyTime = (int)nmNotify.Value;
+        }
+
+        private void panel5_Paint(object sender, PaintEventArgs e)
+        {
+        }
+
+        private void btnMonday_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void panel6_Paint(object sender, PaintEventArgs e)
+        {
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+        }
+
+        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+        }
+
+        private void btnTuesday_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
 
         private void button4_Click(object sender, EventArgs e)
         {
@@ -432,12 +448,5 @@ namespace ThiCuoiKy
         {
 
         }
-
-        private void nmNotify_ValueChanged(object sender, EventArgs e)
-        {
-            screen.NotifyTime = (int)nmNotify.Value;
-        }
     }
-
-    
 }
