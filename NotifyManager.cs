@@ -9,15 +9,12 @@ namespace Calendar.Notify
 {
     public class NotifyManager : NotificationBase
     {
-        #region Properties
         public bool IsEnabled
         {
             get { return isEnabled; }
             set { isEnabled = value; }
         }
-        #endregion
 
-        #region Public Methods
         public override bool ShouldNotify(DateTime currentDate, List<PlanItem> jobs)
         {
             if (!isEnabled) return false;
@@ -43,6 +40,5 @@ namespace Calendar.Notify
                 notifyForm.ShowDialog();
             }
         }
-        #endregion
     }
 }
