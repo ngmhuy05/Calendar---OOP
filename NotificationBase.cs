@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Calendar.Notify
-{
+namespace ThiCuoiKy
     public abstract class NotificationBase
     {
         protected bool isEnabled;
