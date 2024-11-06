@@ -64,10 +64,13 @@ namespace ThiCuoiKy
 
             ModeScreen();
 
+            // Khởi tạo NotifyIcon
             Notify = new NotifyIcon();
 
+            // Reset đếm thời gian
             appTime = 0;
 
+            // Khởi tạo NotifyManager
             InitializeNotification();
 
             LoadMtrix();
@@ -282,23 +285,33 @@ namespace ThiCuoiKy
 
             }
         }
+
+        //Phương thức để quản lý và hiển thị các thông báo trong ứng dụng dựa trên trạng thái của checkbox ckbNotify.
         private void InitializeNotification()
         {
+            // Tạo mới NotifyManager
             notifyManager = new NotifyManager();
+
+            // Trạng thái bật/tắt thông báo dựa trên checkbox
             notifyManager.IsEnabled = ckbNotify.Checked;
         }
+
+        // Event handler được gọi khi Timer tmNotify được kích hoạt hoặc "tick" (tức là đến thời điểm đã được thiết lập).
         private void tmNotify_Tick(object sender, EventArgs e)
         {
             // Nếu checkbox thông báo không được chọn thì không chạy thông báo
             if (notifyManager == null)
             {
+                // Khởi tạo NotifyManager nếu chưa có
                 InitializeNotification();
                 return;
             }
+            
             // Tăng biến đếm thời gian
             if (!notifyManager.IsEnabled)
                 return;
 
+            // Tăng bộ đếm thời gian
             AppTime++;
 
             // Nếu chưa đến thời gian thông báo, thoát ra khỏi hàm
@@ -307,38 +320,56 @@ namespace ThiCuoiKy
                 return;
             }
 
+            // Lấy ngày hiện tại
             DateTime currentDate = DateTime.Now;
 
             // Kiểm tra các công việc trong ngày hiện tại
             List<PlanItem> todayJobs = GetTodayJobs(currentDate);
 
+            // Kiểm tra xem có cần thông báo không
             if (notifyManager.ShouldNotify(currentDate, Job.Job))
             {
+                // Tạo nội dung thông báo
                 string message = $"Bạn có {todayJobs.Count} việc cần làm trong ngày hôm nay";
+
+                // Hiển thị thông báo
                 notifyManager.ShowNotification(message);
             }
 
+            // Reset bộ đếm thời gian
             AppTime = 0;
         }
+
+        // Phương thức (method) được sử dụng để lấy danh sách các công việc (PlanItem) được thực hiện trong ngày hiện tại.
         private List<PlanItem> GetTodayJobs(DateTime currentDate)
         {
+            // Tạo danh sách công việc hôm nay
             List<PlanItem> todayJobs = new List<PlanItem>();
+            
+            // Lặp qua tất cả các công việc có trong hệ thống
             foreach (PlanItem job in Job.Job)
             {
+                // Kiểm tra xem công việc đó có ngày trùng với ngày hiện tại không
                 if (job.Date.Year == currentDate.Year &&
                    job.Date.Month == currentDate.Month &&
                    job.Date.Day == currentDate.Day)
                 {
+                    // Kiểm tra xem trạng thái của công việc có phải là "Coming" hoặc "Doing" không
                     if (job.Status == PlanItem.liststatus[(int)StatusEnum.Coming] ||
                        job.Status == PlanItem.liststatus[(int)StatusEnum.Doing])
                     {
+                        // Nếu công việc thỏa mãn các điều kiện trên, thì thêm nó vào danh sách todayJobs
+                        // Thêm công việc vào danh sách
                         todayJobs.Add(job);
                     }    
                 }    
             }
+
+            // Trả về danh sách công việc của hôm nay
             return todayJobs;
         }
-                private bool InDay()
+        
+        private bool InDay()
         {
             int current = DateTime.Now.Hour;
             return current >= 6 && current < 18;
@@ -357,19 +388,41 @@ namespace ThiCuoiKy
                 this.BackColor= Color.BlanchedAlmond;
             }
         }
+        
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
         {
             AddNunmberMatrixByDate((sender as DateTimePicker).Value);
         }
+        
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
+            // Kiểm tra biến notifyManager khởi tạo chưa
             if (notifyManager == null)
             {
+                // Khởi tạo NotifyManager nếu chưa có
                 InitializeNotification();
             }
+
+            // Cập nhật trạng thái bật/tắt thông báo
             notifyManager.IsEnabled = ckbNotify.Checked;
+
+            // Cập nhật trạng thái của NumericUpDown
             nmNotify.Enabled = ckbNotify.Checked;
         }
+
+        private void nmNotify_ValueChanged(object sender, EventArgs e)
+        {
+            // Kiểm tra biến notifyManager khởi tạo chưa
+            if (notifyManager == null)
+            {
+                // Khởi tạo NotifyManager nếu chưa có
+                InitializeNotification();
+            }
+
+            // Reset lại biến đếm thời gian sau khi thông báo
+            Cons.NotifyTime = (int)nmNotify.Value;
+        }
+        
         private void toolStripTextBox1_Click(object sender, EventArgs e)
         {
             MessageBox.Show(Jobstatic.DailyJob(date));
@@ -393,16 +446,6 @@ namespace ThiCuoiKy
         private void button2_Click_1(object sender, EventArgs e)
         {
             dtpkDate.Value = dtpkDate.Value.AddMonths(-1);
-        }
-        private void nmNotify_ValueChanged(object sender, EventArgs e)
-        {
-            if (notifyManager == null)
-            {
-                InitializeNotification();
-            }
-
-            // Reset lại biến đếm thời gian sau khi thông báo
-            Cons.NotifyTime = (int)nmNotify.Value;
         }
 
         private void panel5_Paint(object sender, PaintEventArgs e)
